@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 
 const router = express.Router();
 
-// ====== Load Schema ======
+// ===== Load Schema =====
 const loadSchema = new mongoose.Schema(
   {
     shipperId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -27,7 +27,7 @@ const loadSchema = new mongoose.Schema(
 
 const Load = mongoose.model("Load", loadSchema);
 
-// ====== Auth Middleware ======
+// ===== Auth Middleware =====
 function protect(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
@@ -44,7 +44,7 @@ function protect(req, res, next) {
   }
 }
 
-// ====== Role Verification Middleware ======
+// ===== Role Verification Middleware =====
 function verifyRole(...allowedRoles) {
   return (req, res, next) => {
     if (!allowedRoles.includes(req.user.role)) {
@@ -54,7 +54,7 @@ function verifyRole(...allowedRoles) {
   };
 }
 
-// ====== POST: Create a Load (Shipper Only) ======
+// ===== POST: Create a Load (Shipper Only) =====
 router.post("/", protect, verifyRole("shipper"), async (req, res) => {
   try {
     const { origin, destination, cargoType, weight, price, pickupDate, deliveryDate } = req.body;
@@ -82,7 +82,7 @@ router.post("/", protect, verifyRole("shipper"), async (req, res) => {
   }
 });
 
-// ====== GET: All Loads (Dispatcher, Carrier, or Admin) ======
+// ===== GET: All Loads (Dispatcher, Carrier, or Admin) =====
 router.get("/", protect, verifyRole("dispatcher", "carrier", "admin"), async (req, res) => {
   try {
     const loads = await Load.find().populate("shipperId", "email name");
@@ -92,7 +92,7 @@ router.get("/", protect, verifyRole("dispatcher", "carrier", "admin"), async (re
   }
 });
 
-// ====== GET: Loads by Shipper ======
+// ===== GET: Loads by Shipper =====
 router.get("/my-loads", protect, verifyRole("shipper"), async (req, res) => {
   try {
     const loads = await Load.find({ shipperId: req.user.id });
@@ -102,7 +102,7 @@ router.get("/my-loads", protect, verifyRole("shipper"), async (req, res) => {
   }
 });
 
-// ====== PATCH: Update Load Status (Dispatcher/Admin Only) ======
+// ===== PATCH: Update Load Status (Dispatcher/Admin Only) =====
 router.patch("/:id/status", protect, verifyRole("dispatcher", "admin"), async (req, res) => {
   try {
     const { status } = req.body;
@@ -115,7 +115,7 @@ router.patch("/:id/status", protect, verifyRole("dispatcher", "admin"), async (r
   }
 });
 
-// ====== DELETE: Remove a Load (Shipper/Admin Only) ======
+// ===== DELETE: Remove a Load (Shipper/Admin Only) =====
 router.delete("/:id", protect, verifyRole("shipper", "admin"), async (req, res) => {
   try {
     const load = await Load.findByIdAndDelete(req.params.id);
